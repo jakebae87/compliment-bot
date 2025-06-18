@@ -9,7 +9,12 @@ DB_PATH = "data.db"
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS compliments (name TEXT PRIMARY KEY, count INTEGER DEFAULT 0)")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS compliments (
+            name TEXT PRIMARY KEY,
+            count INTEGER DEFAULT 0
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -20,18 +25,18 @@ def webhook():
 
     if utterance.startswith("/칭찬 "):
         name = utterance.replace("/칭찬", "").strip()
-        if not name:
-            return kakao_response("칭찬할 이름을 입력해주세요.")
-        result = add_compliment(name)
-        return kakao_response(result)
+        if name:
+            add_compliment(name)
+        return empty_response()  # 사용자에게 아무것도 응답하지 않음
 
     elif utterance == "/칭찬종합":
         result = get_summary()
         return kakao_response(result)
 
     else:
-        return kakao_response("올바른 명령어를 입력해주세요.\n예: /칭찬 민준 또는 /칭찬종합")
+        return kakao_response("이 챗봇은 `/칭찬종합` 명령만 응답합니다.")
 
+# 사용자에게 응답하는 함수 (카카오 메시지 형식)
 def kakao_response(text):
     return jsonify({
         "version": "2.0",
@@ -46,17 +51,25 @@ def kakao_response(text):
         }
     })
 
+# 사용자에게 아무 메시지도 보내지 않음
+def empty_response():
+    return jsonify({
+        "version": "2.0",
+        "template": {
+            "outputs": []
+        }
+    })
+
+# 칭찬 수 증가 처리
 def add_compliment(name):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("INSERT OR IGNORE INTO compliments (name, count) VALUES (?, 0)", (name,))
     cur.execute("UPDATE compliments SET count = count + 1 WHERE name = ?", (name,))
     conn.commit()
-    cur.execute("SELECT count FROM compliments WHERE name = ?", (name,))
-    count = cur.fetchone()[0]
     conn.close()
-    return f"🎉 {count}번째 칭찬\n😀 {name} 칭찬해요!"
 
+# 칭찬 전체 순위 출력
 def get_summary():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
