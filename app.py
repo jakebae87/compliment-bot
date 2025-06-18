@@ -27,21 +27,28 @@ def webhook():
 
     if utterance.startswith("/칭찬 "):
         name = utterance.replace("/칭찬", "").strip()
-        print(f"[DEBUG] /칭찬 요청 감지됨 - name: {name}")  # 👈 로그 출력
+        print(f"[DEBUG] /칭찬 요청 감지됨 - name: {name}")
         if name:
             add_compliment(name)
-        return empty_response()
+        return empty_response()  # 사용자에게 응답하지 않음
 
     elif utterance == "/칭찬종합":
-        print("[DEBUG] /칭찬종합 요청 감지됨")  # 👈 로그 출력
+        print("[DEBUG] /칭찬종합 요청 감지됨")
         result = get_summary()
+        print(f"[DEBUG] 응답 길이: {len(result)}")
         return kakao_response(result)
 
     else:
-        return kakao_response("이 챗봇은 `/칭찬종합` 명령만 응답합니다.")
+        return kakao_response("이 챗봇은 `/칭찬` 또는 `/칭찬종합` 명령에만 응답합니다.")
 
 # 사용자에게 응답하는 함수 (카카오 메시지 형식)
 def kakao_response(text):
+    if not text or not isinstance(text, str):
+        text = "응답 오류가 발생했습니다. 다시 시도해주세요."
+
+    if len(text) > 1000:
+        text = text[:990] + "\n(이하 생략...)"
+
     return jsonify({
         "version": "2.0",
         "template": {
@@ -80,9 +87,17 @@ def get_summary():
     cur.execute("SELECT name, count FROM compliments ORDER BY count DESC")
     rows = cur.fetchall()
     conn.close()
+
     if not rows:
         return "아직 아무도 칭찬받지 않았어요 😅"
-    return "📊 칭찬 종합 결과!\n" + "\n".join([f"{i+1}. {name} - {count}회" for i, (name, count) in enumerate(rows)])
+
+    lines = [f"{i+1}. {name} - {count}회" for i, (name, count) in enumerate(rows)]
+    result = "📊 칭찬 종합 결과!\n" + "\n".join(lines)
+
+    if len(result) > 990:
+        result = result[:990] + "\n(이하 생략...)"
+
+    return result
 
 if __name__ == "__main__":
     init_db()
