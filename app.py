@@ -67,7 +67,13 @@ def empty_response():
     return jsonify({
         "version": "2.0",
         "template": {
-            "outputs": []
+            "outputs": [
+                {
+                    "simpleText": {
+                        "text": " "  # 공백 문자열이라도 넣어줘야 schema 만족
+                    }
+                }
+            ]
         }
     })
 
