@@ -27,11 +27,13 @@ def webhook():
 
     if utterance.startswith("/칭찬 "):
         name = utterance.replace("/칭찬", "").strip()
+        print(f"[DEBUG] /칭찬 요청 감지됨 - name: {name}")  # 👈 로그 출력
         if name:
             add_compliment(name)
-        return empty_response()  # 사용자에게 아무것도 응답하지 않음
+        return empty_response()
 
     elif utterance == "/칭찬종합":
+        print("[DEBUG] /칭찬종합 요청 감지됨")  # 👈 로그 출력
         result = get_summary()
         return kakao_response(result)
 
