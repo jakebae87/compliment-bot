@@ -22,6 +22,8 @@ def init_db():
 def webhook():
     data = request.get_json()
     utterance = data.get('userRequest', {}).get('utterance', '').strip()
+    params = data.get('action', {}).get('params', {})
+    name = params.get('이름') or utterance.replace("/칭찬", "").strip()
 
     if utterance.startswith("/칭찬 "):
         name = utterance.replace("/칭찬", "").strip()
