@@ -20,6 +20,7 @@ def init_db():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    print("[DEBUG] /webhook 호출됨", flush=True)
     data = request.get_json()
     utterance = data.get('userRequest', {}).get('utterance', '').strip()
     params = data.get('action', {}).get('params', {})
