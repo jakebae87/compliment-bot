@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import sqlite3
 import os
-import json
 
 app = Flask(__name__)
 DB_PATH = "data.db"
@@ -21,7 +20,6 @@ def init_db():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    print("[DEBUG] /webhook 호출됨", flush=True)
     data = request.get_json()
     utterance = data.get('userRequest', {}).get('utterance', '').strip()
     params = data.get('action', {}).get('params', {})
@@ -51,7 +49,7 @@ def kakao_response(text):
     if len(text) > 1000:
         text = text[:990] + "\n(이하 생략...)"
 
-    response_data = {
+    return jsonify({
         "version": "2.0",
         "template": {
             "outputs": [
@@ -62,28 +60,22 @@ def kakao_response(text):
                 }
             ]
         }
-    }
-    print("[DEBUG] kakao_response 출력값:\n" + json.dumps(response_data, ensure_ascii=False, indent=2), flush=True)
-    return jsonify(response_data)
-
+    })
 
 # 사용자에게 아무 메시지도 보내지 않음
-
 def empty_response():
-    response_data = {
+    return jsonify({
         "version": "2.0",
         "template": {
             "outputs": [
                 {
                     "simpleText": {
-                        "text": " "  # 공백 문자열
+                        "text": "칭찬 추가 완료"  # 공백 문자열이라도 넣어줘야 schema 만족
                     }
                 }
             ]
         }
-    }
-    print("[DEBUG] empty_response 출력값:\n" + json.dumps(response_data, ensure_ascii=False, indent=2), flush=True)
-    return jsonify(response_data)
+    })
 
 # 칭찬 수 증가 처리
 def add_compliment(name):
