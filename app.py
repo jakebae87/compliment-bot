@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import sqlite3
 import os
+import json
 
 app = Flask(__name__)
 DB_PATH = "data.db"
@@ -50,7 +51,7 @@ def kakao_response(text):
     if len(text) > 1000:
         text = text[:990] + "\n(이하 생략...)"
 
-    return jsonify({
+    response_data = {
         "version": "2.0",
         "template": {
             "outputs": [
@@ -61,22 +62,28 @@ def kakao_response(text):
                 }
             ]
         }
-    })
+    }
+    print("[DEBUG] kakao_response 출력값:\n" + json.dumps(response_data, ensure_ascii=False, indent=2), flush=True)
+    return jsonify(response_data)
+
 
 # 사용자에게 아무 메시지도 보내지 않음
+
 def empty_response():
-    return jsonify({
+    response_data = {
         "version": "2.0",
         "template": {
             "outputs": [
                 {
                     "simpleText": {
-                        "text": " "  # 공백 문자열이라도 넣어줘야 schema 만족
+                        "text": " "  # 공백 문자열
                     }
                 }
             ]
         }
-    })
+    }
+    print("[DEBUG] empty_response 출력값:\n" + json.dumps(response_data, ensure_ascii=False, indent=2), flush=True)
+    return jsonify(response_data)
 
 # 칭찬 수 증가 처리
 def add_compliment(name):
